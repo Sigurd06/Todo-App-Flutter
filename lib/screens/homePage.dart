@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:todo/database_helper.dart';
 import 'package:todo/screens/taskPage.dart';
 import 'package:todo/widgets.dart';
+
+import '../models/task.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -10,6 +13,8 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final DatabaseHelper _dbHelper = DatabaseHelper();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -30,15 +35,21 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                   Expanded(
-                      child: ListView(children: [
-                    TaskCardWidget(),
-                    TaskCardWidget(),
-                    TaskCardWidget(),
-                    TaskCardWidget(),
-                    TaskCardWidget(),
-                    TaskCardWidget(),
-                    TaskCardWidget(),
-                  ]))
+                      child: FutureBuilder<List<Task>>(
+                    future: _dbHelper.getTasks(),
+                    builder: (context, snapshot) {
+                      return ScrollConfiguration(
+                        behavior: NoGlowBehaviour(),
+                        child: ListView.builder(
+                            itemCount: snapshot.data!.length,
+                            itemBuilder: (context, index) {
+                              return TaskCardWidget(
+                                title: snapshot.data![index].title,
+                              );
+                            }),
+                      );
+                    },
+                  ))
                 ],
               ),
               Positioned(
@@ -46,13 +57,20 @@ class _HomePageState extends State<HomePage> {
                 right: 0.0,
                 child: GestureDetector(
                   onTap: () {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => TaskPage()));
+                    Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const TaskPage()))
+                        .then((value) => setState(() {}));
                   },
                   child: Container(
                     width: 60.0,
                     height: 60.0,
                     decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                            colors: [Color(0xff7349fe), Color(0xff643fdb)],
+                            begin: Alignment(0.0, -1.0),
+                            end: Alignment(0.0, -1.0)),
                         color: const Color(0xff7349fe),
                         borderRadius: BorderRadius.circular(28.0)),
                     child: const Image(
